@@ -72,7 +72,7 @@ class Vector2D:
         return Vector2D(self.x - other.x, self.y - other.y)
 
 
-class Trajectory:
+class TrajectoryUtils:
     def __init__(self, ball_store) -> None:
         self.ball_store = ball_store
     

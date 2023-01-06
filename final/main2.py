@@ -1,5 +1,5 @@
 from modules.elements import Ball, BallStore, Table
-from modules.utils import Trajectory
+from modules.utils import TrajectoryUtils
 
 Rxs, Rys = [30, 40, 150, 20], [40, 30, 70, 60]
 Jxs, Jys = [10, 40, 150], [80, 40, 10]
