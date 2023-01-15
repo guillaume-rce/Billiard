@@ -1,5 +1,5 @@
 import numpy as np
-from modules import elements as e
+
 
 def toVector(p1: np.ndarray, p2: np.ndarray):
     '''La fonction prend en entrée deux tableaux numpy (p1 et p2) et renvoie un dictionnaire contenant la norme du vecteur allant de p1 à p2 et le vecteur lui-même. Le vecteur est obtenu en soustrayant p2 à p1 element-wise, et sa norme est calculée grâce à la fonction numpy.linalg.norm.'''
@@ -70,51 +70,3 @@ class Vector2D:
 
     def __sub__(self, other):
         return Vector2D(self.x - other.x, self.y - other.y)
-
-
-class TrajectoryUtils:
-    def __init__(self, ball_store) -> None:
-        self.ball_store = ball_store
-    
-    def update_ball_store(self, ball_store: e.BallStore):
-        """
-        Update the BallStore.
-        
-        Parameters:
-        - ball_store: A BallStore object.
-        """
-        self.ball_store = ball_store
-    
-    def is_valid_move(self, ball: e.Ball, x: float, y: float) -> bool:
-        """
-        Check if a move to the given position is valid.
-        A move is valid if it stays within the dimensions of the table, does not collide with any balls in the BallStore, and does not intersect with any balls in the BallStore that have the "opponent_ball" tag.
-        
-        Parameters:
-        - ball: The ball to move.
-        - x: The x-coordinate of the target position.
-        - y: The y-coordinate of the target position.
-        
-        Returns:
-        - True if the move is valid, False otherwise.
-        """
-        # Check if the target position is within the dimensions of the table
-        if x < 0 or x > e.Table.TABLE_DIMENSION[0] or y < 0 or y > e.Table.TABLE_DIMENSION[1]:
-            return False
-        
-        # Check for collision with balls in the BallStore
-        for other_ball in self.ball_store.get_balls():
-            if other_ball != ball:  # Don't check for collision with the ball being moved
-                distance = other_ball.distance_to_position(x, y)
-                if distance < 2 * e.Ball.radius:  # Assume balls are considered to be in collision if they are closer than 2 times their radius
-                    return False
-        
-        # Check for intersection with opponent balls in the BallStore
-        for opponent_ball in self.ball_store.get_balls():
-            if "opponent_ball" in opponent_ball.tags:
-                distance = opponent_ball.distance_to_position(x, y)
-                if distance < e.Ball.radius:  # Assume intersection if the ball is closer than its radius to the opponent ball
-                    return False
-
-        # If no collision or intersection is detected, the move is considered to be valid
-        return True

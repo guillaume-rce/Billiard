@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle
-from modules.utils import TrajectoryUtils
 
 
 class Ball:
@@ -317,12 +316,3 @@ class Table:
         :param filename: le nom du fichier de sortie
         """
         self.fig.savefig(filename)
-
-
-class Trajectory:
-    def __init__(self, starting_ball: Ball) -> None:
-        self.starting_ball = starting_ball
-        self.final_balls = {}
-    
-    def add_trajectory(self, final_ball: Ball) -> None:
-        pass
