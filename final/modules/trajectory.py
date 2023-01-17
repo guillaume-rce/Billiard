@@ -1,4 +1,11 @@
-from modules.elements import Table, Ball, BallStore
+from modules.elements import Table, Ball, BallStore, Hole, HoleStore
+
+_DIFICULTIES_LEVEL = {
+    'ONE CENTIMETER' = 0.2,
+    'BOUNCE' = 10,
+    'TOUCH A BALL' = 30,
+    'TOUCH BLACK BALL' = 50,
+}  # TODO: Define the level
 
 def check_intersection(ball: Ball, x: int, y: int, ball_store: BallStore) -> bool:
         """
@@ -28,18 +35,20 @@ def check_intersection(ball: Ball, x: int, y: int, ball_store: BallStore) -> boo
         return True
 
 class Trajectory:
-    next_id = 1
+    next_id = 0
+    max_bounce = 0
 
     def __init__(self, starting_ball: Ball, final_ball: Ball, tags: list = []) -> None:
-        self.id = Ball.next_id  # Assign the next available ID to this ball
-        Ball.next_id += 1  # Increment the next available ID
+        self.id = Trajectory.next_id  # Assign the next available ID to this ball
+        Trajectory.next_id += 1  # Increment the next available ID
+        self.bounce = Trajectory.max_bounce
 
         self.starting_ball = starting_ball
         self.final_ball = final_ball
         self.distance = starting_ball.distance_to(final_ball)
         self.tags = tags
         self.difficulty = 0
-    
+
     def add_tag(self, tag: str) -> None:
         """
         Add the given tag to the ball's list of tags.
@@ -93,6 +102,10 @@ class Trajectory:
         """
         for trajectory in trajectories:
             trajectory.add_tag(tag)
+    
+    @classmethod
+    def set_max_bounce(cls, value: int) -> None:
+        Trajectory.max_bounce = value
 
 
 class TrajectoryStore:
@@ -133,3 +146,12 @@ class TrajectoryStore:
             if trajectory.check_intersection(ball_store):
                 ids.append(id)
         return ids
+
+class SelectTrajectories:
+    def __init__(self) -> None:
+        pass
+    
+    def select_trajectories(self, ballStore: BallStore, holes_store: HoleStore) -> TrajectoryStore:
+        trajectory_store = TrajectoryStore
+        for player_ball in ballStore.get_balls(ballStore.get_player_color()):
+            pass  # TODO: set trajectories

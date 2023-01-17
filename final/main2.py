@@ -1,4 +1,4 @@
-from modules.elements import BallStore, Table
+from modules.elements import BallStore, Table, HoleStore
 
 
 Rxs, Rys = [30, 40, 150, 20], [40, 30, 70, 60]
@@ -12,8 +12,10 @@ ball_store.add_balls([10], [10], "white")
 
 ball_store.get_balls("red")
 
+hole_store = HoleStore()
+
 # Create a new Table
-table = Table(ball_store)
+table = Table(ball_store, hole_store)
 
 # Display the balls on the table
 table.display_balls()

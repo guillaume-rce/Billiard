@@ -3,8 +3,155 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle
 
 
+class Hole:
+    next_id = 0
+    radius = 9.5
+
+    def __init__(self, x: int, y: int, tags: list = []) -> None:
+        """
+        Initialize a new hole with the given x and y position and optional tags.
+        The hole is assigned a unique ID.
+        """
+        self.id = Ball.next_id  # Assign the next available ID to this ball
+        Ball.next_id += 1  # Increment the next available ID
+        
+        self.x = x
+        self.y = y
+        self.tags = tags
+    
+    def add_tag(self, tag: str) -> None:
+        """
+        Add the given tag to the hole's list of tags.
+        """
+        self.tags.append(tag)
+    
+    def remove_tag(self, tag: str) -> None:
+        """
+        Remove the given tag from the hole's list of tags.
+        """
+        self.tags.remove(tag)
+    
+    def get_tag(self) -> list:
+        return self.tags
+    
+    def get_position(self) -> np.ndarray:
+        """
+        Return the hole's position as a numpy array of the form [x, y].
+        """
+        return np.array([self.x, self.y])
+    
+    def distance_to(self, other_ball) -> float:
+        """
+        Return the distance between this hole and the other ball.
+        """
+        return np.linalg.norm(self.get_position() - other_ball.get_position())
+    
+    def distance_to_position(self, x: float, y: float):
+        """
+        Return the distance between this hole and the position.
+        """
+        return np.linalg.norm(self.get_position() - np.array([x, y]))
+    
+    def contains_point(self, x, y) -> bool:
+        """
+        Return True if the point (x, y) is inside this hole, False otherwise.
+        """
+        return self.distance_to(np.array([x, y])) <= Ball.radius
+    
+    @classmethod
+    def get_by_id(cls, id: int, holes: list):
+        """
+        Return the hole with the given ID, or None if no such hole exists.
+        """
+        for hole in holes:
+            if hole.id == id:
+                return hole
+        return None
+    
+    @classmethod
+    def get_by_tag(cls, tag: str, holes: list) -> list:
+        """
+        Return a list of balls with the given tag.
+        """
+        holes = []
+        for hole in holes:
+            if tag in hole.tags:
+                holes.append(hole)
+        return holes
+    
+    @classmethod
+    def get_positions(cls, holes: list) -> np.ndarray:
+        """
+        Return the positions of all balls as a numpy array of the form [[x1, y1], [x2, y2], ...].
+        """
+        xs = []
+        ys = []
+        for hole in holes:
+            xs.append(hole.x)
+            ys.append(hole.y)
+        return np.array((xs, ys))
+    
+    @classmethod
+    def num_balls(cls, holes: list) -> int:
+        """
+        Return the number of balls.
+        """
+        return len(holes)
+    
+    @classmethod
+    def add_tag_to_all(cls, tag: str, holes) -> None:
+        """
+        Add the given tag to all balls in the given list.
+        """
+        for hole in holes:
+            hole.add_tag(tag)
+
+
+class HoleStore:
+    def __init__(self) -> None:
+        TABLE_DIMENSION = Table.TABLE_DIMENSION
+        self.holes = [
+            Hole(0, 0),
+            Hole(TABLE_DIMENSION[0], 0),
+            Hole(0, TABLE_DIMENSION[1]),
+            Hole(TABLE_DIMENSION[0], TABLE_DIMENSION[1]),
+            Hole(TABLE_DIMENSION[0]/2, 0),
+            Hole(TABLE_DIMENSION[0]/2, TABLE_DIMENSION[1]),
+        ]
+    
+    def get_positions(self):
+        """
+        Return the positions of all balls of the given color as a numpy array of the form [x1, y1, x2, y2, ...].
+        If no color is specified, return the positions of all balls.
+        """
+        xs = []
+        ys = []
+        for hole in self.holes:
+            xs.append(hole.x)
+            ys.append(hole.y)
+        return np.array((xs, ys))
+    
+    def find_hole(self, x: float, y: float) -> Hole:
+        """
+        Find the ball at the given position, if any.
+        
+        Parameters:
+        - x: The x-coordinate of the position to search.
+        - y: The y-coordinate of the position to search.
+        
+        Returns:
+        - The ball at the given position, or None if no ball is found.
+        """
+        for hole in self.holes:
+            distance = hole.distance_to(x, y)
+            if distance < Hole.radius:  # Assume the ball is at the given position if it is closer than its radius
+                return hole
+        # If no ball is found, return None
+        return None
+
+
 class Ball:
-    next_id = 1  # Class attribute to keep track of the next available ID
+    next_id = 0  # Class attribute to keep track of the next available ID
     radius = 5.7
 
     def __init__(self, x: int, y: int, tags: list = []) -> None:
@@ -193,10 +340,7 @@ class BallStore:
         """
         xs = []
         ys = []
-        if color:
-            balls = self.balls[color]
-        else:
-            balls = self.get_balls()
+        balls = self.get_balls(color)
         for ball in balls:
             xs.append(ball.x)
             ys.append(ball.y)
@@ -240,11 +384,13 @@ class BallStore:
 
 
     def get_player_color(self) -> str:
+        '''
+        Return the player color.
+        '''
         if 'player_ball' in self.get_balls('red')[0].get_tag():
             return 'red'
         else:
             return 'yellow'
-
 
 
 class Table:
@@ -254,7 +400,7 @@ class Table:
 
     TABLE_DIMENSION = (190, 95)  # Class constant
 
-    def __init__(self, ball_store: BallStore):
+    def __init__(self, ball_store: BallStore, hole_store: HoleStore):
         """
         Initialize a new Table instance with the given BallStore.
 
@@ -266,6 +412,13 @@ class Table:
         self.rect = Rectangle((0, 0), self.TABLE_DIMENSION[0], self.TABLE_DIMENSION[1], fc='g')
         self.ax.add_patch(self.rect)
         self.ax.margins(0.05, 0.1)
+
+        holes_positions = hole_store.get_positions()
+        xs = holes_positions[0]
+        ys = holes_positions[1]
+
+        for x, y in zip(xs, ys):
+            self.ax.add_patch(Circle((x, y), radius=Hole.radius/2, color='blue'))
     
     def display_balls(self):
         """
@@ -282,7 +435,7 @@ class Table:
         
         # Add a Circle patch for each ball to the plot
         for x, y, color in zip(xs, ys, ball_colors):
-            self.ax.add_patch(Circle((x, y), radius = Ball.radius/2, color=color))
+            self.ax.add_patch(Circle((x, y), radius=Ball.radius/2, color=color))
     
     def liaison(self, first_ball: Ball, second_ball: Ball, color: str):
         x = np.array(first_ball.x, second_ball.y)
@@ -310,9 +463,8 @@ class Table:
         plt.show()
     
     def save(self, filename: str):
-        """
-        La méthode save permet de sauvegarder la figure matplotlib représentant la table de billard et les billes dans un fichier.
-
-        :param filename: le nom du fichier de sortie
-        """
         self.fig.savefig(filename)
+
+    @classmethod
+    def set_table_dimension(size_x: int, size_y: int) -> None:
+        Table.TABLE_DIMENSION = (size_x, size_y)
