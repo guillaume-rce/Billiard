@@ -12,7 +12,7 @@ ball_store.add_balls([10], [10], "white")
 
 ball_store.get_balls("red")
 
-traj = Trajectory(ball_store)
+traj = TrajectoryUtils(ball_store)
 print(traj.is_valid_move(Ball.get_by_id(1, ball_store.get_balls('red')), 50, 50))
 
 # Create a new Table

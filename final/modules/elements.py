@@ -295,14 +295,14 @@ class Table:
         y = np.array(y1, y2)
         plt.plot(x, y, color=color)
 
-    def update_ball_store(self, ball_store: BallStore):
+    '''def update_ball_store(self, ball_store: BallStore):
         """
         Update the table's BallStore with the given BallStore.
         
         Parameters:
         - ball_store: A BallStore object.
         """
-        self.ball_store = ball_store
+        self.ball_store = ball_store'''
     
     def display(self):
         """
