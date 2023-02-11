@@ -1,5 +1,5 @@
-from modules.elements import Ball, BallStore, Table
-from modules.utils import TrajectoryUtils
+from modules.elements import BallStore, Table, HoleStore
+
 
 Rxs, Rys = [30, 40, 150, 20], [40, 30, 70, 60]
 Jxs, Jys = [10, 40, 150], [80, 40, 10]
@@ -12,11 +12,10 @@ ball_store.add_balls([10], [10], "white")
 
 ball_store.get_balls("red")
 
-traj = TrajectoryUtils(ball_store)
-print(traj.is_valid_move(Ball.get_by_id(1, ball_store.get_balls('red')), 50, 50))
+hole_store = HoleStore()
 
 # Create a new Table
-table = Table(ball_store)
+table = Table(ball_store, hole_store)
 
 # Display the balls on the table
 table.display_balls()
