@@ -12,8 +12,8 @@ class Hole:
         Initialize a new hole with the given x and y position and optional tags.
         The hole is assigned a unique ID.
         """
-        self.id = Ball.next_id  # Assign the next available ID to this ball
-        Ball.next_id += 1  # Increment the next available ID
+        self.id = Hole.next_id  # Assign the next available ID to this ball
+        Hole.next_id += 1  # Increment the next available ID
         
         self.x = x
         self.y = y
@@ -148,6 +148,15 @@ class HoleStore:
                 return hole
         # If no ball is found, return None
         return None
+    
+    def get_holes(self):
+        return self.holes
+    
+    def get_hole(self, id: int):
+        return Hole.get_by_id(id, self.holes)
+    
+    def get_holes_by_tag(self, tag: str):
+        return Hole.get_by_tag(tag, self.holes)
 
 
 class Ball:
@@ -164,7 +173,16 @@ class Ball:
         
         self.x = x
         self.y = y
+        self.player = False
         self.tags = tags
+    
+    @property
+    def is_player(self) -> bool:
+        return self.player
+    
+    @is_player.setter
+    def set_player(self, value: bool) -> None:
+        self.player = value
 
     def update_position(self, x: int, y: int) -> None:
         """
@@ -194,7 +212,7 @@ class Ball:
         """
         return np.array([self.x, self.y])
     
-    def distance_to(self, other_ball) -> float:
+    def distance_to(self, other_ball: 'Ball') -> float:
         """
         Return the distance between this ball and the other ball.
         """
@@ -206,32 +224,20 @@ class Ball:
         """
         return np.linalg.norm(self.get_position() - np.array([x, y]))
 
-    def collides_with(self, other_ball) -> bool:
+    def collides_with(self, other_ball: 'Ball') -> bool:
         """
         Return True if this ball collides with the other ball, False otherwise.
         """
         return self.distance_to(other_ball) <= 2 * Ball.radius
 
-    def contains_point(self, x, y) -> bool:
+    def contains_point(self, x: int, y: int) -> bool:
         """
         Return True if the point (x, y) is inside this ball, False otherwise.
         """
         return self.distance_to(np.array([x, y])) <= Ball.radius
     
-    def set_player(self, player) -> None:
-        """
-        Set this ball as belonging to the given player.
-        Player should be either "player" or "opponent".
-        """
-        if player == "player":
-            self.tags.append("player_ball")
-        elif player == "opponent":
-            self.tags.append("opponent_ball")
-        else:
-            raise ValueError("Invalid player. Player should be either 'player' or 'opponent'.")
-    
     @classmethod
-    def get_by_id(cls, id: int, balls: list):
+    def get_by_id(cls, id: int, balls: list['Ball']):
         """
         Return the ball with the given ID, or None if no such ball exists.
         """
@@ -241,7 +247,7 @@ class Ball:
         return None
     
     @classmethod
-    def get_by_tag(cls, tag: str, balls: list) -> list:
+    def get_by_tag(cls, tag: str, balls: list['Ball']) -> list:
         """
         Return a list of balls with the given tag.
         """
@@ -252,7 +258,7 @@ class Ball:
         return balls
     
     @classmethod
-    def get_positions(cls, balls: list) -> np.ndarray:
+    def get_positions(cls, balls: list['Ball']) -> np.ndarray:
         """
         Return the positions of all balls as a numpy array of the form [[x1, y1], [x2, y2], ...].
         """
@@ -264,14 +270,14 @@ class Ball:
         return np.array((xs, ys))
     
     @classmethod
-    def num_balls(cls, balls: list) -> int:
+    def num_balls(cls, balls: list['Ball']) -> int:
         """
         Return the number of balls.
         """
         return len(balls)
     
     @classmethod
-    def add_tag_to_all(cls, tag: str, balls) -> None:
+    def add_tag_to_all(cls, tag: str, balls: list['Ball']) -> None:
         """
         Add the given tag to all balls in the given list.
         """
@@ -288,7 +294,7 @@ class BallStore:
             "black": [],
         }
     
-    def add_balls(self, xs, ys, color):
+    def add_balls(self, xs: list, ys: list, color: str):
         """
         Add balls with the given coordinates and color to the store.
         """
@@ -296,13 +302,13 @@ class BallStore:
             ball = Ball(xs[i], ys[i])
             self.balls[color].append(ball)
     
-    def remove_ball(self, ball, color):
+    def remove_ball(self, ball: Ball, color: str):
         """
         Remove the given ball from the store.
         """
         self.balls[color].remove(ball)
     
-    def get_balls(self, color=None) -> list[Ball]:
+    def get_balls(self, color: str = None) -> list[Ball]:
         """
         Return the list of balls with the given color in the store.
         If no color is specified, return the list of all balls.
@@ -315,6 +321,18 @@ class BallStore:
                 balls += self.balls[color]
             return balls
     
+    def get_white_ball(self) -> Ball:
+        """
+        Return the list of white balls in the store.
+        """
+        return self.balls["white"][0]
+
+    def get_black_ball(self) -> Ball:
+        """
+        Return the list of black balls in the store.
+        """
+        return self.balls["black"][0]
+    
     def get_colors(self):
         """
         Return a list of the colors of all balls in the store.
@@ -325,7 +343,7 @@ class BallStore:
                 colors.append(color)
         return colors
     
-    def update_positions(self, xs, ys, color):
+    def update_positions(self, xs: list, ys: list, color: str):
         """
         Update the positions of all the balls of the given color in the store according to xs and ys.
         """
@@ -333,7 +351,7 @@ class BallStore:
             ball = self.balls[color][i]
             ball.update_position(xs[i], ys[i])
     
-    def get_positions(self, color=None):
+    def get_positions(self, color: str = None):
         """
         Return the positions of all balls of the given color as a numpy array of the form [x1, y1, x2, y2, ...].
         If no color is specified, return the positions of all balls.
@@ -374,24 +392,27 @@ class BallStore:
             player_color: The color of the balls controlled by the player.
             opponent_color: The color of the balls controlled by the opponent.
         """
-        # Set player property of player balls
-        for player_ball in self.get_balls(player_color):
-            player_ball.set_player("player")
+        if player_color == opponent_color:
+            raise ValueError("The player color and opponent color must be different.")
+        if player_color not in self.balls or opponent_color not in self.balls:
+            raise ValueError("The player color and opponent color must be valid colors.")
+        if player_color == "white" or opponent_color == "white" or player_color == "black" or opponent_color == "black":
+            raise ValueError("The player color and opponent color must not be white or black.")
+
+        for ball in self.get_balls(player_color):
+            ball.set_player = True
         
-        # Set player property of opponent balls
-        for player_ball in self.get_balls(opponent_color):
-            player_ball.set_player("player")
+        for ball in self.get_balls(opponent_color):
+            ball.set_player = False
 
 
     def get_player_color(self) -> str:
         '''
         Return the player color.
         '''
-        if 'player_ball' in self.get_balls('red')[0].get_tag():
-            return 'red'
-        else:
-            return 'yellow'
-
+        for color, ball in zip(self.get_colors(), self.get_balls()):
+            if ball.is_player:
+                return color
 
 class Table:
     """
@@ -438,23 +459,31 @@ class Table:
             self.ax.add_patch(Circle((x, y), radius=Ball.radius/2, color=color))
     
     def liaison(self, first_ball: Ball, second_ball: Ball, color: str):
-        x = np.array(first_ball.x, second_ball.y)
-        y = np.array(first_ball.y, second_ball.y)
+        """
+        Draw a liaison between the two given balls.
+        """
+        x = np.array((first_ball.x, second_ball.x))
+        y = np.array((first_ball.y, second_ball.y))
         plt.plot(x, y, color=color)
 
     def liaison_by_coords(self, x1: float, y1: float, x2: float, y2: float, color: str):
-        x = np.array(x1, x2)
-        y = np.array(y1, y2)
+        """
+        Draw a liaison between the two given points.
+        """
+        x = np.array((x1, x2))
+        y = np.array((y1, y2))
         plt.plot(x, y, color=color)
 
-    '''def update_ball_store(self, ball_store: BallStore):
+    '''
+    def update_ball_store(self, ball_store: BallStore):
         """
         Update the table's BallStore with the given BallStore.
         
         Parameters:
         - ball_store: A BallStore object.
         """
-        self.ball_store = ball_store'''
+        self.ball_store = ball_store
+    '''
     
     def display(self):
         """

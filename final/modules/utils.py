@@ -1,15 +1,6 @@
 import numpy as np
 
-
-def toVector(p1: np.ndarray, p2: np.ndarray):
-    '''La fonction prend en entrée deux tableaux numpy (p1 et p2) et renvoie un dictionnaire contenant la norme du vecteur allant de p1 à p2 et le vecteur lui-même. Le vecteur est obtenu en soustrayant p2 à p1 element-wise, et sa norme est calculée grâce à la fonction numpy.linalg.norm.'''
-    vect = np.array(p1-p2)
-    return {"norme":np.linalg.norm(vect), "vecteur": vect}
-
-def projOrtho(vect: dict):
-    pass
-
-def convert_coordinates(xs, ys):
+def convert_coordinates(xs: tuple, ys: tuple) -> tuple:
   """Convertit les coordonnées en np.array sous la forme (xs, ys) en np.array sous la forme ((x1, y1), (x2, y2), ...)
   
   Args:
@@ -23,11 +14,11 @@ def convert_coordinates(xs, ys):
   return points
 
 def is_obstacle_on_trajectory(
-    p1: tuple,
-    p2: tuple,
-    obs: tuple,
+    p1: np.ndarray,
+    p2: np.ndarray,
+    obs: np.ndarray,
     radius: float,
-):
+) -> bool:
     '''
     La fonction is_obstacle_on_trajectory prend en entrée 4 arguments :
 
@@ -58,15 +49,42 @@ def is_obstacle_on_trajectory(
     else:
         return False
 
-
 class Vector2D:
+    '''Classe représentant un vecteur 2D'''
     def __init__(self, x, y, radius):
+        '''Initialise un vecteur 2D'''
         self.x = x
         self.y = y
         self.radius = radius
 
-    def dot(self, other):
+    def dot(self, other: 'Vector2D'):
+        '''Renvoie le produit scalaire de self et other'''
         return self.x * other.x + self.y * other.y
+    
+    def projected_orthogonal(self, other: 'Vector2D'):
+        '''Renvoie la projection orthogonale de self sur other'''
+        return other * (self.dot(other) / other.dot(other))
 
-    def __sub__(self, other):
+    def norm(self):
+        '''Renvoie la norme du vecteur'''
+        return np.linalg.norm(self)
+    
+    def __sub__(self, other: 'Vector2D'):
+        '''Renvoie la soustraction de self et other'''
         return Vector2D(self.x - other.x, self.y - other.y)
+    
+    def __add__(self, other: 'Vector2D'):
+        '''Renvoie la somme de self et other'''
+        return Vector2D(self.x + other.x, self.y + other.y)
+    
+    def __mul__(self, other: 'Vector2D'):
+        '''Renvoie le produit de self et other'''
+        return Vector2D(self.x * other, self.y * other)
+    
+    def __truediv__(self, other: 'Vector2D'):
+        '''Renvoie la division de self et other'''
+        return Vector2D(self.x / other, self.y / other)
+    
+    def __str__(self):
+        '''Renvoie une chaîne de caractères représentant le vecteur'''
+        return f"({self.x}, {self.y})"
