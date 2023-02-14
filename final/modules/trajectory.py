@@ -5,9 +5,9 @@ from numpy.linalg import norm
 
 _DIFICULTIES_LEVEL = {
     'ONE CENTIMETER': 0.2,
-    'ONE DEGREE': 0.5,
+    'ONE DEGREE': 0.1,
     'BOUNCE': 10,
-    'TOUCH A BALL': 30,
+    'TOUCH OPPONENT BALL': 20,
     'TOUCH BLACK BALL': 50,
 }  # TODO: Define the level
 
@@ -21,7 +21,14 @@ def check_intersection(ball:Ball, x: int, y: int, ball_store: BallStore):
     radius = Ball.radius
     for other in ball_store.get_balls():
         if other != ball:
-            if ((x - other.x)**2 + (y - other.y)**2) <= (radius + other.radius)**2:
+            if ((((x - other.x)**2 + (y - other.y)**2) <= (radius + other.radius)**2) or
+                is_obstacle_on_trajectory(
+                    ball.get_position(),
+                    array((x, y)),
+                    other.get_position(),
+                    radius + other.radius,
+                )
+            ):
                 return True
         
     return False
@@ -54,6 +61,7 @@ class Trajectory:
         self.tags = tags
         self.bounce = 0
         self.touch_black_ball = False
+        self.touch_opponent_ball = False
         self.difficulty = 0
 
     def add_tag(self, tag: str) -> None:
@@ -68,11 +76,23 @@ class Trajectory:
         """
         self.tags.remove(tag)
  
-    def get_balls(self) -> tuple[Ball, Hole]:
+    def get_points(self) -> tuple[Ball, Hole]:
         """
-        Return a tuple containing the starting and final balls.
+        Return a tuple containing the starting ball and final hole.
         """
         return self.ball, self.hole
+    
+    def get_ball(self) -> Ball:
+        """
+        Return the starting ball.
+        """
+        return self.ball
+    
+    def get_hole(self) -> Hole:
+        """
+        Return the final ball.
+        """
+        return self.hole
     
     def get_total_distance(self, white_ball: Ball) -> float:
         return white_ball.distance_to(self.ball) + self.ball.distance_to_position(self.hole.x, self.hole.y)
@@ -99,6 +119,8 @@ class Trajectory:
                 self.difficulty += _DIFICULTIES_LEVEL['ONE DEGREE'] * (180. - self.get_angle(white_ball))
             if self.touch_black_ball:
                 self.difficulty += _DIFICULTIES_LEVEL['TOUCH BLACK BALL']
+            if self.touch_opponent_ball:
+                self.difficulty += _DIFICULTIES_LEVEL['TOUCH OPPONENT BALL']
         return self.difficulty
 
     @classmethod

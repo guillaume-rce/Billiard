@@ -1,5 +1,5 @@
 from modules.elements import BallStore, Table, HoleStore
-from modules.trajectory import Trajectory, TrajectoryStore, SelectTrajectories
+from modules.trajectory import TrajectoryStore, SelectTrajectories
 
 
 Rxs, Rys = [30, 40, 150, 20], [40, 30, 70, 60]
@@ -21,37 +21,37 @@ trajectory_store = TrajectoryStore()
 trajectory_store.add_trajectories(ball_store, hole_store)
 
 # Create a new Table
-table = Table(ball_store, hole_store)
+table = Table(hole_store)
 
 # Display the balls on the table
-table.display_balls()
+table.draw_balls(ball_store)
 
 trajectories = SelectTrajectories()
 trajectories.select_trajectories(trajectory_store, ball_store)
 
-table.liaison(
+table.draw_liaison(
     ball_store.get_white_ball(),
-    trajectories.get_easiest().get_balls()[0],
+    trajectories.get_easiest().get_ball(),
     'black',
 )
-table.liaison_by_coords(
-    trajectories.get_easiest().get_balls()[0].x,
-    trajectories.get_easiest().get_balls()[0].y,
-    trajectories.get_easiest().get_balls()[1].x,
-    trajectories.get_easiest().get_balls()[1].y,
+table.draw_liaison_by_coords(
+    trajectories.get_easiest().get_ball().x,
+    trajectories.get_easiest().get_ball().y,
+    trajectories.get_easiest().get_hole().x,
+    trajectories.get_easiest().get_hole().y,
     'black',
 )
 
-table.liaison(
+table.draw_liaison(
     ball_store.get_white_ball(),
-    trajectories.get_hardest().get_balls()[0],
+    trajectories.get_hardest().get_ball(),
     'red',
 )
-table.liaison_by_coords(
-    trajectories.get_hardest().get_balls()[0].x,
-    trajectories.get_hardest().get_balls()[0].y,
-    trajectories.get_hardest().get_balls()[1].x,
-    trajectories.get_hardest().get_balls()[1].y,
+table.draw_liaison_by_coords(
+    trajectories.get_hardest().get_ball().x,
+    trajectories.get_hardest().get_ball().y,
+    trajectories.get_hardest().get_hole().x,
+    trajectories.get_hardest().get_hole().y,
     'red',
 )
 

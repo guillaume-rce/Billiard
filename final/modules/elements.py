@@ -379,7 +379,7 @@ class BallStore:
         for ball_color in self.balls:
             if color is None or color == ball_color:  # Check if the ball color matches the search criteria
                 for ball in self.balls[ball_color]:
-                    distance = ball.distance_to(x, y)
+                    distance = ball.distance_to_position(x, y)
                     if distance < Ball.radius:  # Assume the ball is at the given position if it is closer than its radius
                         return ball
         # If no ball is found, return None
@@ -421,69 +421,75 @@ class Table:
 
     TABLE_DIMENSION = (190, 95)  # Class constant
 
-    def __init__(self, ball_store: BallStore, hole_store: HoleStore):
+    def __init__(self, hole_store: HoleStore):
         """
         Initialize a new Table instance with the given BallStore.
 
         Parameters:
         - ball_store: A BallStore object.
         """
-        self.ball_store = ball_store
         self.fig, self.ax = plt.subplots()
         self.rect = Rectangle((0, 0), self.TABLE_DIMENSION[0], self.TABLE_DIMENSION[1], fc='g')
         self.ax.add_patch(self.rect)
         self.ax.margins(0.05, 0.1)
 
-        holes_positions = hole_store.get_positions()
-        xs = holes_positions[0]
-        ys = holes_positions[1]
 
-        for x, y in zip(xs, ys):
-            self.ax.add_patch(Circle((x, y), radius=Hole.radius/2, color='blue'))
+        for hole in hole_store.get_holes():
+            self.draw_text(hole.id, hole.x, hole.y, color="white")
+            self.ax.add_patch(Circle((hole.x, hole.y), radius=Hole.radius/2, color='blue'))
     
-    def display_balls(self):
+    def draw_text(self, text: str, x: float, y: float, color: str = "black"):
+        """
+        Draw the given text at the given position.
+        """
+        plt.text(x, y, text)
+
+    def draw_balls(self, ball_store: BallStore):
         """
         Display the balls from the table's BallStore.
         """
-        
         # Get the positions of all balls in the BallStore
-        ball_positions = self.ball_store.get_positions()
+        ball_positions = ball_store.get_positions()
         xs = ball_positions[0]
         ys = ball_positions[1]
         
         # Get the colors of all balls in the BallStore
-        ball_colors = self.ball_store.get_colors()
+        ball_colors = ball_store.get_colors()
         
         # Add a Circle patch for each ball to the plot
         for x, y, color in zip(xs, ys, ball_colors):
+            self.draw_ball_id(ball_store.find_ball(x, y, color))
             self.ax.add_patch(Circle((x, y), radius=Ball.radius/2, color=color))
     
-    def liaison(self, first_ball: Ball, second_ball: Ball, color: str):
+    def draw_ball_id(self, ball: Ball):
+        """
+        Draw the id of the given ball.
+        """
+        self.draw_text(ball.id, ball.x, ball.y)
+
+    def draw_liaison(self, first_ball: Ball, second_ball: Ball, color: str):
         """
         Draw a liaison between the two given balls.
         """
-        x = np.array((first_ball.x, second_ball.x))
-        y = np.array((first_ball.y, second_ball.y))
-        plt.plot(x, y, color=color)
+        self.draw_liaison_by_coords(
+            first_ball.x, first_ball.y,
+            second_ball.x, second_ball.y,
+            color
+        )
 
-    def liaison_by_coords(self, x1: float, y1: float, x2: float, y2: float, color: str):
+    def draw_liaison_by_coords(self, x1: float, y1: float, x2: float, y2: float, color: str):
         """
         Draw a liaison between the two given points.
         """
         x = np.array((x1, x2))
         y = np.array((y1, y2))
         plt.plot(x, y, color=color)
-
-    '''
-    def update_ball_store(self, ball_store: BallStore):
+    
+    def draw_cross(self, x: float, y: float, color: str):
         """
-        Update the table's BallStore with the given BallStore.
-        
-        Parameters:
-        - ball_store: A BallStore object.
+        Draw a cross at the given position.
         """
-        self.ball_store = ball_store
-    '''
+        plt.plot(x, y, 'x', color=color)
     
     def display(self):
         """
@@ -495,5 +501,5 @@ class Table:
         self.fig.savefig(filename)
 
     @classmethod
-    def set_table_dimension(size_x: int, size_y: int) -> None:
-        Table.TABLE_DIMENSION = (size_x, size_y)
+    def set_table_dimension(cls, size_x: int, size_y: int) -> None:
+        cls.TABLE_DIMENSION = (size_x, size_y)
