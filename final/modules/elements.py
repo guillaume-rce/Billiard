@@ -1,6 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.patches import Circle, Rectangle
+from modules.utils import Vector2D
 
 
 class Hole:
@@ -105,6 +106,12 @@ class Hole:
         """
         for hole in holes:
             hole.add_tag(tag)
+    
+    def __repr__(self) -> str:
+        return "Hole({self.id}, {self.x}, {self.y}, {self.tags})".format(self=self)
+    
+    def __str__(self) -> str:
+        return "Hole {self.id} at ({self.x}, {self.y})".format(self=self)
 
 
 class HoleStore:
@@ -283,7 +290,12 @@ class Ball:
         """
         for ball in balls:
             ball.add_tag(tag)
-
+    
+    def __repr__(self) -> str:
+        return "Ball({self.id}, {self.x}, {self.y}, {self.tags})".format(self=self)
+    
+    def __str__(self) -> str:
+        return "Ball {self.id} at ({self.x}, {self.y})".format(self=self)
 
 class BallStore:
     def __init__(self):
@@ -302,11 +314,24 @@ class BallStore:
             ball = Ball(xs[i], ys[i])
             self.balls[color].append(ball)
     
+    def add_ball(self, x: int, y: int, color: str):
+        """
+        Add a ball with the given coordinates and color to the store.
+        """
+        ball = Ball(x, y)
+        self.balls[color].append(ball)
+    
     def remove_ball(self, ball: Ball, color: str):
         """
         Remove the given ball from the store.
         """
         self.balls[color].remove(ball)
+    
+    def remove_ball_by_id(self, id: int, color: str):
+        """
+        Remove the ball with the given ID from the store.
+        """
+        self.balls[color].remove(Ball.get_by_id(id, self.balls[color]))
     
     def get_balls(self, color: str = None) -> list[Ball]:
         """
@@ -345,11 +370,16 @@ class BallStore:
     
     def update_positions(self, xs: list, ys: list, color: str):
         """
-        Update the positions of all the balls of the given color in the store according to xs and ys.
+        Update the positions of all balls of the given color to the given coordinates.
+        Note that the number of coordinates can be different to the number of balls.
         """
-        for i in range(len(xs)):
-            ball = self.balls[color][i]
-            ball.update_position(xs[i], ys[i])
+        if len(xs) != len(ys):
+            raise ValueError("The number of x-coordinates must be equal to the number of y-coordinates.")
+        
+        for ball in self.balls[color]:
+            self.remove_ball(ball, color)
+        
+        self.add_balls(xs, ys, color)
     
     def get_positions(self, color: str = None):
         """
@@ -421,28 +451,33 @@ class Table:
 
     TABLE_DIMENSION = (190, 95)  # Class constant
 
-    def __init__(self, hole_store: HoleStore):
+    def __init__(self):
         """
-        Initialize a new Table instance with the given BallStore.
-
-        Parameters:
-        - ball_store: A BallStore object.
+        Initialize the table.
         """
         self.fig, self.ax = plt.subplots()
+    
+    def draw_table(self):
+        """
+        Draw the table.
+        """
         self.rect = Rectangle((0, 0), self.TABLE_DIMENSION[0], self.TABLE_DIMENSION[1], fc='g')
         self.ax.add_patch(self.rect)
         self.ax.margins(0.05, 0.1)
 
-
-        for hole in hole_store.get_holes():
-            self.draw_text(hole.id, hole.x, hole.y, color="white")
-            self.ax.add_patch(Circle((hole.x, hole.y), radius=Hole.radius/2, color='blue'))
-    
     def draw_text(self, text: str, x: float, y: float, color: str = "black"):
         """
         Draw the given text at the given position.
         """
         plt.text(x, y, text)
+
+    def draw_holes(self, hole_store: HoleStore):
+        """
+        Display the holes from the table's HoleStore.
+        """
+        for hole in hole_store.get_holes():
+            self.draw_text(hole.id, hole.x, hole.y, color="white")
+            self.ax.add_patch(Circle((hole.x, hole.y), radius=Hole.radius/2, color='blue'))
 
     def draw_balls(self, ball_store: BallStore):
         """
@@ -467,17 +502,17 @@ class Table:
         """
         self.draw_text(ball.id, ball.x, ball.y)
 
-    def draw_liaison(self, first_ball: Ball, second_ball: Ball, color: str):
+    def draw_line(self, first_ball: Ball, second_ball: Ball, color: str):
         """
         Draw a liaison between the two given balls.
         """
-        self.draw_liaison_by_coords(
+        self.draw_line_by_coords(
             first_ball.x, first_ball.y,
             second_ball.x, second_ball.y,
             color
         )
 
-    def draw_liaison_by_coords(self, x1: float, y1: float, x2: float, y2: float, color: str):
+    def draw_line_by_coords(self, x1: float, y1: float, x2: float, y2: float, color: str):
         """
         Draw a liaison between the two given points.
         """
@@ -491,6 +526,44 @@ class Table:
         """
         plt.plot(x, y, 'x', color=color)
     
+    def draw_cross_by_angle(self, ball: Ball, angle: float, color: str):
+        """
+        Draw a cross at the given angle from the given ball.
+        """
+        x = ball.x + Ball.radius * np.cos(angle)
+        y = ball.y + Ball.radius * np.sin(angle)
+        self.draw_cross(x, y, color=color)
+    
+    def draw_vector(self, x: int, y: int, vector: Vector2D, color: str = "red"):
+        """
+        Draw a vector starting at the given position.
+        """
+        self.draw_line_by_coords(x, y, x + vector.x, y + vector.y, color=color)
+        plt.arrow(
+            x, y, vector.x, vector.y,
+            head_width=2.5,
+            head_length=2.5,
+            fc=color, ec=color)
+    
+    def clear(self):
+        """
+        Update the table with the given BallStore.
+        """
+        self.ax.clear()
+        self.fig, self.ax = plt.subplots()
+
+    def update_all(self,
+                   hole_store: HoleStore,
+                   ball_store: BallStore,
+                   ):
+        """
+        Update the table with the given HoleStore and BallStore.
+        """
+        self.clear()
+        self.draw_table()
+        self.draw_holes(hole_store)
+        self.draw_balls(ball_store)
+
     def display(self):
         """
         Display the table using Matplotlib.

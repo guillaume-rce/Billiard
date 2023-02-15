@@ -1,6 +1,5 @@
-from modules.elements import Table, Ball, BallStore, Hole, HoleStore
-from modules.utils import is_obstacle_on_trajectory
-from numpy import dot, arccos, degrees, array
+from modules.elements import Ball, BallStore, Hole, HoleStore, Table
+from numpy import arccos, array, degrees, dot
 from numpy.linalg import norm
 
 _DIFICULTIES_LEVEL = {
@@ -9,7 +8,7 @@ _DIFICULTIES_LEVEL = {
     'BOUNCE': 10,
     'TOUCH OPPONENT BALL': 20,
     'TOUCH BLACK BALL': 50,
-}  # TODO: Define the level
+}  # TODO: Define the level    
 
 def check_intersection(ball:Ball, x: int, y: int, ball_store: BallStore):
     """
@@ -17,17 +16,17 @@ def check_intersection(ball:Ball, x: int, y: int, ball_store: BallStore):
     """
     if x < 0 or x > Table.TABLE_DIMENSION[0] or y < 0 or y > Table.TABLE_DIMENSION[1]:
         return True
-
-    radius = Ball.radius
+    
     for other in ball_store.get_balls():
+        diameter = (ball.radius + other.radius)
+        print(diameter)
         if other != ball:
-            if ((((x - other.x)**2 + (y - other.y)**2) <= (radius + other.radius)**2) or
-                is_obstacle_on_trajectory(
-                    ball.get_position(),
-                    array((x, y)),
-                    other.get_position(),
-                    radius + other.radius,
-                )
+            distance = ball.distance_to_position(x, y)
+            distance_obs_p1 = ball.distance_to(other)
+            distance_obs_p2 = norm(array([x, y]) - other.get_position())
+
+            if ((distance_obs_p1 + distance_obs_p2) <= distance or
+                distance_obs_p1 <= diameter or distance_obs_p2 <= diameter
             ):
                 return True
         
@@ -47,6 +46,7 @@ def check_angle(white_ball: Ball, ball: Ball, hole: Hole) -> bool:
     if angle > 100. and angle < 260.:
         return True
     return False
+
 
 class Trajectory:
     next_id = 0
@@ -128,11 +128,7 @@ class Trajectory:
         """
         Check if a trajectory is possible.
         A trajectory is possible if the white ball can reach the ball and the ball can reach the hole.
-        """
-        print(not check_intersection(white_ball, ball.x, ball.y, ball_store),
-              not check_intersection(ball, hole.x, hole.y, ball_store),
-              check_angle(white_ball, ball, hole))
-        
+        """       
         if (not check_intersection(ball, hole.x, hole.y, ball_store)  # TODO: Add for white_ball
             and check_angle(white_ball, ball, hole)):
                 return True
@@ -215,18 +211,25 @@ class TrajectoryStore:
         """
         Remove the trajectory with the given ID.
         """
-        for key, value in self.trajectories.items():
-            for i, trajectory in enumerate(value):
-                if trajectory.id == id:
-                    del value[i]
-                    if len(value) == 0:
-                        del self.trajectories[key]
+        for ball_id in list(self.trajectories.keys()):
+            for hole_id in list(self.trajectories[ball_id].keys()):
+                if self.trajectories[ball_id][hole_id].id == id:
+                    del self.trajectories[ball_id][hole_id]
     
     def remove_ball(self, ball: Ball) -> None:
         """
         Remove all trajectories with the given ball.
         """
         del self.trajectories[ball.id]
+    
+    def update_trajectories(self, ball_store: BallStore, holes: HoleStore, tags: list = []) -> None:
+        """
+        Update all trajectories.
+        """
+        for i in self.get_ids():
+            self.remove_trajectory(i)
+        
+        self.add_trajectories(ball_store, holes, tags)
     
     def get_trajectories(self, ball: Ball) -> list[Trajectory]:
         """
@@ -251,6 +254,16 @@ class TrajectoryStore:
                 trajectories.append((ball_id, hole_id, self.trajectories[ball_id][hole_id]))
         return trajectories
 
+    def get_ids(self) -> list[int]:
+        """
+        Return a list of all IDs.
+        """
+        ids = []
+        for ball_id in list(self.trajectories.keys()):
+            for hole_id in list(self.trajectories[ball_id].keys()):
+                ids.append(self.trajectories[ball_id][hole_id].id)
+        return ids
+
 
 class SelectTrajectories:
     """
@@ -269,7 +282,25 @@ class SelectTrajectories:
         white_ball = ball_store.get_white_ball()
         for ball_id, hole_id, trajectory in trajectories.enumerate():
             self.trajectories[trajectory.get_difficulty(white_ball)] = trajectory
+    
+    def update_trajectories(self, trajectories: TrajectoryStore, ball_store: BallStore) -> None:
+        """
+        Update the selected trajectories.
+        """
+        self.trajectories = {}
+        self.select_trajectories(trajectories, ball_store)
+    
+    def get_trajectory(self, difficulty: float = None) -> Trajectory:
+        """
+        Return the trajectory with the given difficulty, or the easiest if no difficulty is given.
+        """
+        if difficulty is None:
+            return self.get_easiest()
         
+        if difficulty not in self.trajectories:
+            difficulty = min(self.trajectories.keys(), key=lambda x: abs(x - difficulty))
+        return self.trajectories[difficulty]
+
     def get_easiest(self) -> Trajectory:
         """
         Return the easiest trajectory.
