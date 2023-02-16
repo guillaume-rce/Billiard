@@ -41,11 +41,11 @@ class Hole:
         """
         return np.array([self.x, self.y])
     
-    def distance_to(self, other_ball) -> float:
+    def distance_to(self, other) -> float:
         """
         Return the distance between this hole and the other ball.
         """
-        return np.linalg.norm(self.get_position() - other_ball.get_position())
+        return np.linalg.norm(self.get_position() - other.get_position())
     
     def distance_to_position(self, x: float, y: float):
         """
@@ -69,6 +69,16 @@ class Hole:
                 return hole
         return None
     
+    @classmethod
+    def get_by_position(self, x: int, y: int, holes_store: "HoleStore") -> "Hole":
+        """
+        Return the hole at the given position, or None if no such hole exists.
+        """
+        for hole in holes_store.get_holes():
+            if hole.x == x and hole.y == y:
+                return hole
+        return None
+
     @classmethod
     def get_by_tag(cls, tag: str, holes: list) -> list:
         """
@@ -156,7 +166,7 @@ class HoleStore:
         # If no ball is found, return None
         return None
     
-    def get_holes(self):
+    def get_all(self):
         return self.holes
     
     def get_hole(self, id: int):
@@ -219,11 +229,11 @@ class Ball:
         """
         return np.array([self.x, self.y])
     
-    def distance_to(self, other_ball: 'Ball') -> float:
+    def distance_to(self, other) -> float:
         """
         Return the distance between this ball and the other ball.
         """
-        return np.linalg.norm(self.get_position() - other_ball.get_position())
+        return np.linalg.norm(self.get_position() - other.get_position())
     
     def distance_to_position(self, x: float, y: float):
         """
@@ -242,6 +252,31 @@ class Ball:
         Return True if the point (x, y) is inside this ball, False otherwise.
         """
         return self.distance_to(np.array([x, y])) <= Ball.radius
+    
+    def is_in_trajectory(self, departure: tuple[int, int], arrival: tuple[int, int]) -> bool:
+        """
+        Return True if the ball is on the given trajectory. 
+        """     
+        # Check if the ball is on the line defined by the departure and arrival points
+        # See https://math.stackexchange.com/questions/274712/calculate-on-which-side-of-a-straight-line-is-a-given-point-located
+        d = (arrival[0] - departure[0]) * (self.y - departure[1]) - (arrival[1] - departure[1]) * (self.x - departure[0])
+        return -Ball.radius*2 <= d <= Ball.radius*2
+    
+    def __repr__(self) -> str:
+        return "Ball({self.id}, {self.x}, {self.y}, {self.tags})".format(self=self)
+    
+    def __str__(self) -> str:
+        return "Ball {self.id} at ({self.x}, {self.y})".format(self=self)
+    
+    @classmethod
+    def get_by_position(cls, x: int, y: int, ball_store: "BallStore") -> 'Ball':
+        """
+        Return the ball at the given position, or None if no such ball exists.
+        """
+        for ball in ball_store.get_all():
+            if ball.x == x and ball.y == y:
+                return ball
+        return None
     
     @classmethod
     def get_by_id(cls, id: int, balls: list['Ball']):
@@ -290,11 +325,23 @@ class Ball:
         """
         for ball in balls:
             ball.add_tag(tag)
-    
+
+    def __eq__(self, other: "Ball") -> bool:
+        """
+        Return True if the balls have the same ID, False otherwise.
+        """
+        return self.id == other.id
+
     def __repr__(self) -> str:
+        """
+        Return a string representation of the instance.
+        """
         return "Ball({self.id}, {self.x}, {self.y}, {self.tags})".format(self=self)
     
     def __str__(self) -> str:
+        """
+        Return a string representation of the ball.
+        """
         return "Ball {self.id} at ({self.x}, {self.y})".format(self=self)
 
 class BallStore:
@@ -333,7 +380,7 @@ class BallStore:
         """
         self.balls[color].remove(Ball.get_by_id(id, self.balls[color]))
     
-    def get_balls(self, color: str = None) -> list[Ball]:
+    def get_all(self, color: str = None) -> list[Ball]:
         """
         Return the list of balls with the given color in the store.
         If no color is specified, return the list of all balls.
@@ -388,7 +435,7 @@ class BallStore:
         """
         xs = []
         ys = []
-        balls = self.get_balls(color)
+        balls = self.get_all(color)
         for ball in balls:
             xs.append(ball.x)
             ys.append(ball.y)
@@ -429,18 +476,17 @@ class BallStore:
         if player_color == "white" or opponent_color == "white" or player_color == "black" or opponent_color == "black":
             raise ValueError("The player color and opponent color must not be white or black.")
 
-        for ball in self.get_balls(player_color):
+        for ball in self.get_all(player_color):
             ball.set_player = True
         
-        for ball in self.get_balls(opponent_color):
+        for ball in self.get_all(opponent_color):
             ball.set_player = False
-
 
     def get_player_color(self) -> str:
         '''
         Return the player color.
         '''
-        for color, ball in zip(self.get_colors(), self.get_balls()):
+        for color, ball in zip(self.get_colors(), self.get_all()):
             if ball.is_player:
                 return color
 
@@ -475,7 +521,7 @@ class Table:
         """
         Display the holes from the table's HoleStore.
         """
-        for hole in hole_store.get_holes():
+        for hole in hole_store.get_all():
             self.draw_text(hole.id, hole.x, hole.y, color="white")
             self.ax.add_patch(Circle((hole.x, hole.y), radius=Hole.radius/2, color='blue'))
 

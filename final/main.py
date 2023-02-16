@@ -8,16 +8,19 @@
 
 
 from modules.elements import BallStore, HoleStore, Table
-from modules.trajectory import SelectTrajectories, TrajectoryStore
-from modules.utils import Vector2D
-from time import sleep
+from modules.last_trajectory import SelectTrajectories, TrajectoryStore
 
 Rxs, Rys = [30, 40, 150, 20], [40, 30, 70, 60]
 Yxs, Yys = [10, 40, 150], [80, 40, 10]
 Wx, Wy = [100], [60]
 Bx, By = [80], [90]
 
-def main(red_xs, red_ys, yellow_xs, yellow_ys, white_x, white_y, black_x, black_y):
+def main(
+        red_xs, red_ys,
+        yellow_xs, yellow_ys,
+        white_x, white_y,
+        black_x, black_y
+    ) -> None:
     # Create a new BallStore and add some balls to it
     ball_store = BallStore()
     ball_store.add_balls(red_xs, red_ys, "red")
@@ -45,29 +48,30 @@ def main(red_xs, red_ys, yellow_xs, yellow_ys, white_x, white_y, black_x, black_
     table.draw_line(
         ball_store.get_white_ball(),
         trajectories.get_easiest().get_ball(),
-        'black',
+        'white',
     )
     table.draw_line_by_coords(
         trajectories.get_easiest().get_ball().x,
         trajectories.get_easiest().get_ball().y,
         trajectories.get_easiest().get_hole().x,
         trajectories.get_easiest().get_hole().y,
-        'black',
+        'white',
     )
 
     table.draw_line(
         ball_store.get_white_ball(),
         trajectories.get_hardest().get_ball(),
-        'white',
+        'black',
     )
     table.draw_line_by_coords(
         trajectories.get_hardest().get_ball().x,
         trajectories.get_hardest().get_ball().y,
         trajectories.get_hardest().get_hole().x,
         trajectories.get_hardest().get_hole().y,
-        'white',
+        'black',
     )
 
+    table.display()
     # ------------------------------------------------------------
     # ------------------------------------------------------------
 
@@ -86,27 +90,27 @@ def main(red_xs, red_ys, yellow_xs, yellow_ys, white_x, white_y, black_x, black_
     table.draw_line(
         ball_store.get_white_ball(),
         trajectories.get_easiest().get_ball(),
-        'black',
+        'white',
     )
     table.draw_line_by_coords(
         trajectories.get_easiest().get_ball().x,
         trajectories.get_easiest().get_ball().y,
         trajectories.get_easiest().get_hole().x,
         trajectories.get_easiest().get_hole().y,
-        'black',
+        'white',
     )
 
     table.draw_line(
         ball_store.get_white_ball(),
         trajectories.get_hardest().get_ball(),
-        'white',
+        'black',
     )
     table.draw_line_by_coords(
         trajectories.get_hardest().get_ball().x,
         trajectories.get_hardest().get_ball().y,
         trajectories.get_hardest().get_hole().x,
         trajectories.get_hardest().get_hole().y,
-        'white',
+        'black',
     )
 
     table.display()
