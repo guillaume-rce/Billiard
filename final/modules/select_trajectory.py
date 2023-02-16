@@ -65,7 +65,7 @@ class SelectTrajectory:
                     trajectory_store.add_trajectory_by_instance(first_trajectory)  # Add the trajectory to the TrajectoryStore   
                     last_ball = first_ball  # Save the fist ball as the last ball         
 
-                    for i in range(bounce+1):  # The number of bounce
+                    for i in range(bounce):  # The number of bounce
                         for ball in ball_store.get_all():  # The next ball of the trajectory
                             if ball == departure or ball == arrival:
                                 continue  # Skip the ball
