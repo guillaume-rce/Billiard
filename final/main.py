@@ -6,6 +6,7 @@
 # =============    description: A billiard solveur    =============
 # =================================================================
 
+# %%
 
 from modules.elements import BallStore, HoleStore, Table
 from modules.last_trajectory import SelectTrajectories, TrajectoryStore
@@ -117,3 +118,4 @@ def main(
 
 if __name__ == "__main__":
     main(Rxs, Rys, Yxs, Yys, Wx, Wy, Bx, By)
+# %%

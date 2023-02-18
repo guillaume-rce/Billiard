@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.patches import Circle, Rectangle
+import numpy as np
+from random import choice
 from modules.utils import Vector2D
 
 
@@ -405,6 +406,36 @@ class BallStore:
         """
         return self.balls["black"][0]
     
+    def get_random_ball(self, color: str = None) -> Ball:
+        """
+        Return a random ball from the store.
+        If no color is specified, return a random ball of any color.
+        """
+        if color:
+            return choice(self.balls[color])
+        else:
+            balls = self.get_all()
+            return choice(balls)
+    
+    def get_nearest_ball(self, x: int, y: int,
+                         ball_not_to_use: list[Ball] = None,
+                         color: str = None) -> Ball:
+        """
+        Return the ball in the store that is nearest to the given coordinates.
+        If no color is specified, return the nearest ball of any color.
+        """
+        balls = self.get_all(color)
+        for ball in ball_not_to_use:
+            if ball in balls:
+                balls.remove(ball)
+        
+        all_balls = {}
+        for ball in balls:
+            distance = ball.distance_to_position(x, y)
+            all_balls[distance] = ball
+        
+        return all_balls[min(all_balls.keys())]
+    
     def get_colors(self):
         """
         Return a list of the colors of all balls in the store.
@@ -482,19 +513,28 @@ class BallStore:
         for ball in self.get_all(opponent_color):
             ball.set_player = False
 
-    def get_player_color(self) -> str:
+    @property
+    def player_color(self) -> str:
         '''
         Return the player color.
         '''
         for color, ball in zip(self.get_colors(), self.get_all()):
             if ball.is_player:
                 return color
+    
+    @property
+    def opponent_color(self) -> str:
+        '''
+        Return the opponent color.
+        '''
+        for color, ball in zip(self.get_colors(), self.get_all()):
+            if not ball.is_player:
+                return color
 
 class Table:
     """
     A class representing a table.
     """
-
     TABLE_DIMENSION = (190, 95)  # Class constant
 
     def __init__(self):

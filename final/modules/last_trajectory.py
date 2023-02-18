@@ -194,7 +194,7 @@ class TrajectoryStore:
         Add all balls in the given BallStore to this store.
         """
         white_ball = ball_store.get_white_ball()
-        for ball in ball_store.get_all(ball_store.get_player_color()):
+        for ball in ball_store.get_all(ball_store.player_color):
             for hole in holes.get_all():
                 if Trajectory.is_possible(white_ball, ball, hole, ball_store):
                     self.add_trajectory(ball, hole, tags)

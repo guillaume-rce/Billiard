@@ -37,51 +37,54 @@ class SelectTrajectory:
         else:
             return self.trajectories[number_of_bounce]
     
-    def get_trajectory(self, number_of_bounce: int, id: int) -> Trajectory:
-        """Return the trajectory"""
-        return self.trajectories[number_of_bounce].get_by_id(id)
-    
     def add_trajectory(self, trajectory_store, number_of_bounce: int = 0):
         """Add the trajectory to the trajectories"""
         if number_of_bounce not in self.trajectories:
             self.trajectories[number_of_bounce] = []
         self.trajectories[number_of_bounce].append(trajectory_store)
         
-    def enumerate_all_trajectories(self,
-                         ball_store: BallStore, hole_store: HoleStore,
-                         number_of_bounce: int = MAX_BOUNCE, tags: list = []
-                        ) -> None:  # TODO : FIX IT...
-        """Add the trajectories to the trajectories"""
-        departure = ball_store.get_white_ball()  # The departure point of the trajectory
-        for arrival in hole_store.get_all():  # The arrival point of the trajectory
-            for bounce in range(number_of_bounce+1):  # The number of bounce
-                trajectory_store = TrajectoryStore()  # Create a new TrajectoryStore
+    def select_trajectories(self,
+                         ball_store: BallStore, hole: Hole,
+                         max_bounce: int = MAX_BOUNCE, tags: list = []
+                        ) -> None:  # TODO: FIX IT
+        """Select the trajectories"""
+        departure = ball_store.get_white_ball()
+        arrival = hole
 
-                for first_ball in ball_store.get_all(ball_store.get_player_color()):
-                    # The first ball of the trajectory (the ball of the player)
-                    if first_ball == departure:  # If the first ball is the departure ball
-                        continue  # Skip the ball
-                    first_trajectory = Trajectory(departure, first_ball, tags)  # Create the first trajectory
-                    trajectory_store.add_trajectory_by_instance(first_trajectory)  # Add the trajectory to the TrajectoryStore   
-                    last_ball = first_ball  # Save the fist ball as the last ball         
+        for number_of_bounce in range(max_bounce + 1):
+            ball_already_touched = [departure]
+            trajectory_store = TrajectoryStore()
 
-                    for i in range(bounce):  # The number of bounce
-                        for ball in ball_store.get_all():  # The next ball of the trajectory
-                            if ball == departure or ball == arrival:
-                                continue  # Skip the ball
-                            if trajectory_store.is_in_trajectory_store(ball):
-                                continue  # Skip the ball
-                            other_trajectory = Trajectory(last_ball, ball, tags)
-                            trajectory_store.add_trajectory_by_instance(other_trajectory)
-                            last_ball = ball  # Save the ball as the last ball
+            final_ball = ball_store.get_nearest_ball(arrival.x, arrival.y,
+                                                    ball_already_touched,
+                                                     ball_store.player_color)
+            if final_ball is None:
+                break
+            trajectory_store.add_trajectory_by_instance(
+                    Trajectory(final_ball, arrival, tags))
+            ball_already_touched.append(final_ball)
 
-                    final_trajectory = Trajectory(last_ball, arrival, tags)  # Create the final trajectory
-                    trajectory_store.add_trajectory_by_instance(final_trajectory)  # Add the trajectory to the TrajectoryStore
+            last_ball = final_ball
+            for bounce in range(number_of_bounce + 1):
+                if bounce == number_of_bounce:
+                    color = ball_store.player_color
+                else:
+                    color = None
+                other_ball = ball_store.get_nearest_ball(last_ball.x, last_ball.y,
+                                                        ball_already_touched,
+                                                        color)
+                if other_ball is None:
+                    break
+                trajectory_store.add_trajectory_by_instance(
+                        Trajectory(other_ball, last_ball, tags))
+                ball_already_touched.append(other_ball)
+                last_ball = other_ball
+            
+            if other_ball is not None or last_ball is not None:
+                break                       
+            trajectory_store.add_trajectory_by_instance(Trajectory(departure, last_ball, tags))
+            self.add_trajectory(trajectory_store, number_of_bounce)
 
-                if len(trajectory_store) > 0:
-                    # If the TrajectoryStore is not empty and the trajectory is not blocked
-                    self.add_trajectory(trajectory_store, bounce)  # Add the TrajectoryStore to the trajectories
-    
     def __str__(self) -> str:
         return "Trajectories: " + str(self.trajectories)
     

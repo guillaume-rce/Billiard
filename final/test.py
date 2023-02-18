@@ -25,7 +25,6 @@ hole_store = HoleStore()
 print(ball_store.get_white_ball())
 
 select_trajectories = SelectTrajectory()
-select_trajectories.enumerate_all_trajectories(ball_store, hole_store, 1)
-for trajectory_store in select_trajectories.get_trajectories():
-    print(trajectory_store)
-    print("\n")
+select_trajectories.select_trajectories(ball_store, hole, 0)
+
+print(select_trajectories)
