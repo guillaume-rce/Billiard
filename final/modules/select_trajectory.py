@@ -47,7 +47,15 @@ class SelectTrajectory:
                          ball_store: BallStore, hole: Hole,
                          max_bounce: int = MAX_BOUNCE, tags: list = []
                         ) -> None:  # TODO: FIX IT
-        """Select the trajectories"""
+        """Select the trajectories
+
+        :param ball_store: The ball store
+        :param hole: The hole
+        :param max_bounce: The maximum number of bounce
+        :param tags: The tags of the trajectories
+
+        :return: None
+        """
         departure = ball_store.get_white_ball()
         arrival = hole
 
