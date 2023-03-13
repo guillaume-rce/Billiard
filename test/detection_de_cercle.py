@@ -1,4 +1,4 @@
-import cv2
+pip install opencv-pythonimport cv2
 import numpy as np
 
 # Ouvrir la caméra
