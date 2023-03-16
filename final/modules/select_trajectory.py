@@ -45,53 +45,36 @@ class SelectTrajectory:
         
     def select_trajectories(self,
                          ball_store: BallStore, hole: Hole,
-                         max_bounce: int = MAX_BOUNCE, tags: list = []
-                        ) -> None:  # TODO: FIX IT
+                         number_of_bounce: int = 1,
+                         tags: list = []
+                        ) -> tuple[TrajectoryStore, list[Ball]]:  # TODO: FIX IT
         """Select the trajectories
 
         :param ball_store: The ball store
         :param hole: The hole
-        :param max_bounce: The maximum number of bounce
+        :param number_of_bounce: The number number of bounce (min: 1, max: 4)
         :param tags: The tags of the trajectories
 
-        :return: None
+        :return: tuple[TrajectoryStore, list[Ball]]: The trajectories and the balls used
         """
         departure = ball_store.get_white_ball()
         arrival = hole
+        trajectory_store = TrajectoryStore()
 
-        for number_of_bounce in range(max_bounce + 1):
-            ball_already_touched = [departure]
-            trajectory_store = TrajectoryStore()
-
-            final_ball = ball_store.get_nearest_ball(arrival.x, arrival.y,
-                                                    ball_already_touched,
-                                                     ball_store.player_color)
-            if final_ball is None:
-                break
-            trajectory_store.add_trajectory_by_instance(
-                    Trajectory(final_ball, arrival, tags))
-            ball_already_touched.append(final_ball)
-
-            last_ball = final_ball
-            for bounce in range(number_of_bounce + 1):
-                if bounce == number_of_bounce:
-                    color = ball_store.player_color
-                else:
-                    color = None
-                other_ball = ball_store.get_nearest_ball(last_ball.x, last_ball.y,
-                                                        ball_already_touched,
-                                                        color)
-                if other_ball is None:
-                    break
-                trajectory_store.add_trajectory_by_instance(
-                        Trajectory(other_ball, last_ball, tags))
-                ball_already_touched.append(other_ball)
-                last_ball = other_ball
-            
-            if other_ball is not None or last_ball is not None:
-                break                       
-            trajectory_store.add_trajectory_by_instance(Trajectory(departure, last_ball, tags))
-            self.add_trajectory(trajectory_store, number_of_bounce)
+        ball_already_use = [departure]
+        last_ball = ball_store.get_nearest_ball(arrival.x, arrival.y, ball_already_use)
+        ball_already_use.append(last_ball)
+        trajectory_store.add_trajectory(last_ball, arrival, tags)
+        
+        if number_of_bounce >=2:
+            for bounce in range(1, number_of_bounce):
+                ball = ball_store.get_nearest_ball(last_ball.x, last_ball.y, ball_already_use)
+                ball_already_use.append(ball)
+                trajectory_store.insert_trajectory(0, Trajectory(ball, last_ball, tags))
+                last_ball = ball
+        
+        trajectory_store.insert_trajectory(0, Trajectory(departure, last_ball, tags))
+        return trajectory_store, ball_already_use
 
     def __str__(self) -> str:
         return "Trajectories: " + str(self.trajectories)

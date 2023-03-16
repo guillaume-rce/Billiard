@@ -145,6 +145,10 @@ class TrajectoryStore:
         """Add new trajectories to the store"""
         self.trajectories.extend(trajectories)
     
+    def insert_trajectory(self, index: int, trajectory: Trajectory) -> None:
+        """Insert a new trajectory to the store"""
+        self.trajectories.insert(index, trajectory)
+
     def remove_trajectory(self, departure: Ball|Hole, arrival: Ball|Hole) -> None:
         """Remove a trajectory from the store"""
         self.trajectories.remove(
@@ -161,6 +165,13 @@ class TrajectoryStore:
             if trajectory.departure == object or trajectory.arrival == object:
                 return True
         return False
+    
+    def is_possible(self) -> bool:
+        """Return True if the trajectory store is possible"""
+        for trajectory in self.get_all():
+            if trajectory.is_blocked():
+                return False
+        return True
 
     def touch_an_opponent_ball(self) -> bool:
         """Return True if the trajectory store touch an opponent ball"""
