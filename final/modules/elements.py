@@ -424,17 +424,17 @@ class BallStore:
         Return the ball in the store that is nearest to the given coordinates.
         If no color is specified, return the nearest ball of any color.
         """
-        balls = self.get_all(color)
-        for ball in ball_not_to_use:
-            if ball in balls:
-                balls.remove(ball)
-        
-        all_balls = {}
-        for ball in balls:
-            distance = ball.distance_to_position(x, y)
-            all_balls[distance] = ball
-        
-        return all_balls[min(all_balls.keys())]
+        try:
+            all_balls = {}
+            for ball in self.get_all(color):
+                if ball in ball_not_to_use:
+                    continue
+                distance = ball.distance_to_position(x, y)
+                all_balls[distance] = ball
+            
+            return all_balls[min(all_balls.keys())]
+        except ValueError:
+            return None
     
     def get_colors(self):
         """
@@ -588,7 +588,7 @@ class Table:
         """
         self.draw_text(ball.id, ball.x, ball.y)
 
-    def draw_line(self, first_ball: Ball, second_ball: Ball, color: str):
+    def draw_line(self, first_ball: Ball|Hole, second_ball: Ball|Hole, color: str):
         """
         Draw a liaison between the two given balls.
         """

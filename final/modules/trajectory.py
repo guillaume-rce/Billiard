@@ -158,20 +158,42 @@ class TrajectoryStore:
     def get_all(self) -> list[Trajectory]:
         """Return all the trajectories in the store"""
         return self.trajectories
+    
+    def get_total_distance(self) -> float:
+        """Return the total distance of the trajectories in the store"""
+        return sum([trajectory.get_distance() for trajectory in self.get_all()])
+    
+    def get_total_angle(self) -> float:
+        """Return the total angle of the trajectories in the store"""
+        trajectories = self.get_all()
+        angle = 0
+        for i in range(len(trajectories) - 1):
+            if i != len(trajectories) - 1:
+                angle += trajectories[i].get_angle(trajectories[i + 1])
+        return angle
+    
+    def get_number_of_bounces(self) -> int:
+        """Return the number of bounces of the trajectories in the store"""
+        return len(self.get_all()) - 1
 
     def is_in_trajectory_store(self, object: Ball|Hole) -> bool:
         """Return True if the object is in the trajectory store"""
-        for trajectory in self.trajectories:
+        for trajectory in self.get_all():
             if trajectory.departure == object or trajectory.arrival == object:
                 return True
         return False
     
-    def is_possible(self) -> bool:
-        """Return True if the trajectory store is possible"""
-        for trajectory in self.get_all():
-            if trajectory.is_blocked():
-                return False
-        return True
+    def is_possible(self, ball_store: BallStore) -> tuple[bool, list[Trajectory]]:
+        """Return True if the trajectory store is possible and which trajectories are blocked"""
+        trajectories = self.get_all()
+        for i in range(len(trajectories)):
+            if trajectories[i].is_blocked(ball_store):
+                return False, [trajectories[i]]
+            if i != len(trajectories) - 1:
+                if (trajectories[i].get_angle(trajectories[i + 1]) > 90 or
+                    trajectories[i].get_angle(trajectories[i + 1]) < -9):
+                    return False, [trajectories[i], trajectories[i + 1]]
+        return True, []
 
     def touch_an_opponent_ball(self) -> bool:
         """Return True if the trajectory store touch an opponent ball"""
