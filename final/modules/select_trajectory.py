@@ -1,7 +1,6 @@
-from types import NoneType
-from modules.utils import Vector2D
-from modules.elements import *
-from modules.trajectory import *
+from modules.trajectory import Trajectory
+from modules.elements import BallStore, HoleStore, Hole, Ball
+from modules.trajectory import TrajectoryStore
 
 DIFICULTIES = {
     'ONE CENTIMETER': 0.2,
@@ -32,7 +31,7 @@ class SelectTrajectory:
         self._easiest = self.get_trajectories_by_difficulty(ball_store, difficulty)
         return self._easiest, difficulty
     
-    def get_hardest(self, ball_store: BallStore) -> tuple[list[Trajectory], float]:
+    def get_hardest(self, ball_store: BallStore) -> tuple[list[TrajectoryStore], float]:
         """Return the hardest trajectory"""
         difficulty = max(self.get_trajectories_by_difficulty(ball_store).keys())
         self._hardest = self.get_trajectories_by_difficulty(ball_store, difficulty)
@@ -42,7 +41,7 @@ class SelectTrajectory:
         """Return the trajectories"""
         if number_of_bounce is None:
             trajectories = []
-            for number_of_bounce in self.trajectories:
+            for number_of_bounce in self.trajectories.items():
                 trajectories.extend(self.trajectories[number_of_bounce])
             return trajectories
         else:
@@ -51,7 +50,7 @@ class SelectTrajectory:
     def get_trajectories_by_difficulty(self, ball_store: BallStore, which_difficulty: str = None) -> dict[list[TrajectoryStore]]|list[TrajectoryStore]:
         """Return the trajectories by difficulty"""
         trajectories = {}
-        for bound, trajectory_stores in zip(self.trajectories.keys(), self.trajectories.values()):
+        for _, trajectory_stores in zip(self.trajectories.keys(), self.trajectories.values()):
             for trajectory_store in trajectory_stores:
                 difficulty = int(round(SelectTrajectory.get_difficulty(trajectory_store, ball_store)))
                 if difficulty not in trajectories:
@@ -62,14 +61,38 @@ class SelectTrajectory:
             return trajectories[which_difficulty]
         return trajectories
 
-    
+    def select_trajectories_by_bounce(self, ball_store: BallStore, hole_store: HoleStore,
+                                      hole: Hole, number_of_bounce: int = 4) -> None:
+        """Select the trajectories by bounce.
+        Enter a number of bounce and the function will select the trajectories with this number of bounce.
+
+        :param ball_store: The ball store
+        :param hole_store: The hole store
+        :param hole_id: The hole id (default: 0)
+        :param number_of_bounce: The number of bounce (default: 4)
+        """
+        for i in range(1, number_of_bounce):  # number of bounce
+            ball_not_use = []  # list of ball that is not use in this bounce
+            while True:  # loop until find a trajectory
+                trajectory, _ = SelectTrajectory.select_trajectory(  # select trajectory
+                    ball_store, hole, number_of_bounce=i, ball_already_use=ball_not_use)
+                if trajectory and trajectory.is_possible(ball_store)[0]:  # if trajectory is possible
+                    self.add_trajectory(trajectory, i)  # add trajectory to list
+                    break
+                elif trajectory:  # if trajectory is not possible
+                    break
+                else:  # if trajectory is not found
+                    for inpossible_trajectory in trajectory.is_possible(ball_store)[1]:  # add ball that is not use in this bounce
+                        ball_not_use.append(inpossible_trajectory.get_arrival())
+                        ball_not_use.append(inpossible_trajectory.get_departure())
+
     @classmethod
-    def select_trajectories(cls,
+    def select_trajectory(cls,
                          ball_store: BallStore, hole: Hole,
                          number_of_bounce: int = 1,
                          ball_already_use: list = None,
                          tags: list = []
-                        ) -> tuple[TrajectoryStore, list[Ball]]:  # TODO: FIX IT
+                        ) -> tuple[TrajectoryStore, list[Ball]]:
         """Select the trajectories
 
         :param ball_store: The ball store
