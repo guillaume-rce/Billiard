@@ -7,16 +7,21 @@ Yxs, Yys = [10, 40, 100, 150], [80, 40, 10, 50]
 Wx, Wy = [100], [60]
 Bx, By = [80], [90]
 
+player = "red"
+opponent = "yellow"
+
 ball_store = BallStore()
 ball_store.add_balls(Rxs, Rys, "red")
 ball_store.add_balls(Yxs, Yys, "yellow")
 ball_store.add_balls(Bx, By, "black")
 ball_store.add_balls(Wx, Wy, "white")
-ball_store.set_players("red", "yellow")
+ball_store.set_players(player, opponent)
 
 hole_store = HoleStore()
 
-for hole in hole_store.get_all():
+for count, hole in enumerate(hole_store.get_all()):
+    if count == 4 or count == 5:
+        continue
     trajectories = SelectTrajectory()
     trajectories.select_trajectories_by_bounce(ball_store, hole_store, hole)
 
