@@ -1,6 +1,6 @@
 # =================================================================
 # =============          path: final\main.py          =============
-# =============   author: Guillaume ROCHE [Fealinx]   =============
+# =============        author: Guillaume ROCHE        =============
 # =============            date: 2022/2023            =============
 # =============             version: 1.0              =============
 # =============    description: A billiard solveur    =============
@@ -9,7 +9,7 @@
 # %%
 
 from modules.elements import BallStore, HoleStore, Table
-from modules.last_trajectory import SelectTrajectories, TrajectoryStore
+from modules.trajectory_last_version import SelectTrajectories, TrajectoryStore
 
 Rxs, Rys = [30, 40, 150, 20], [40, 30, 70, 60]
 Yxs, Yys = [10, 40, 150], [80, 40, 10]

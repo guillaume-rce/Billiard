@@ -1,6 +1,5 @@
-from modules.trajectory import Trajectory
 from modules.select_trajectory import SelectTrajectory
-from modules.elements import *
+from modules.elements import BallStore, HoleStore, Table
 
 Rxs, Rys = [50, 40, 150, 20, 100], [40, 30, 70, 60, 50]
 Yxs, Yys = [10, 40, 100, 150], [80, 40, 10, 50]

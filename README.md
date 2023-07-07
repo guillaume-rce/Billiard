@@ -1,5 +1,7 @@
 # Billard solver
 
+### **Status:** _In development_
+
 ## Description
 
 This project is a billard solver. It is an ESEO Lab project.   
@@ -44,5 +46,5 @@ In the src/test.py file, you can change the billard configuration by changing th
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://en.wikipedia.org/wiki/MIT_License) file for details.   
-__Please name us if you use part or all of the source code. We would appreciate it if you share your creation using our source code.__
+This project is licensed under the [MIT License](https://en.wikipedia.org/wiki/MIT_License).   
+__Please credit us if you use all or part of the source code. We would appreciate it if you would share your work with us.__
