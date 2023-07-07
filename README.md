@@ -4,7 +4,7 @@
 
 ## Description
 
-This project is a billard solver. It is an ESEO Lab project.   
+This project is a billard solver.   
 The goal is to create a billard solver in python using mathematical calculation.   
 _The project is not finished yet. Date of the beginning of the project : 2022/08._
 
