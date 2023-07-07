@@ -12,7 +12,7 @@ _The project is not finished yet. Date of the beginning of the project : 2022/08
 
 ### Requirements
 
-- Python 3.11 or higher
+- Python 3.10 or higher
 - numpy
 - matplotlib
 
