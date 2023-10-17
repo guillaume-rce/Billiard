@@ -1,3 +1,10 @@
+# =================================================================
+# =============        author: Guillaume ROCHE        =============
+# =============            date: 2022/2023            =============
+# =============             version: 0.2              =============
+# =============    description: A billiard solveur    =============
+# =================================================================
+
 from modules.select_trajectory import SelectTrajectory
 from modules.elements import BallStore, HoleStore, Table
 
