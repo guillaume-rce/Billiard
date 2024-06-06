@@ -46,5 +46,5 @@ In the src/test.py file, you can change the billard configuration by changing th
 
 ## License
 
-This project is licensed under the [MIT License](https://en.wikipedia.org/wiki/MIT_License).   
-__Please credit us if you use all or part of the source code. We would appreciate it if you would share your work with us.__
+This project is licensed under a personalized license. See the [LICENSE.md](LICENSE.md) file for details.
+Don't hesitate to contact me if you have any questions, I'm really open to discuss about it.
