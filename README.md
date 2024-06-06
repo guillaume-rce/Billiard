@@ -40,9 +40,9 @@ In the src/test.py file, you can change the billard configuration by changing th
 * player : the player who plays ("yellow" or "red")
 * opponent : the player who doesn't play ("yellow" or "red")
 
-## Authors
+## Team
 
-- **Guillaume ROCHE**
+- (**Guillaume ROCHE**)[https://github.com/guillaume-rce]
 
 ## License
 
