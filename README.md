@@ -42,7 +42,7 @@ In the src/test.py file, you can change the billard configuration by changing th
 
 ## Team
 
-- (**Guillaume ROCHE**)[https://github.com/guillaume-rce]
+- [**Guillaume ROCHE**](https://guillaume-rce.github.io/)
 
 ## License
 
